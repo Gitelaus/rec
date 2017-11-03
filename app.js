@@ -39,11 +39,32 @@ console.log(_.times(MODULES.length, function (num){
 }));
 
 // view engine setup
-app.set('views', _.times(MODULES.length, function (num){
+app.set('views', path.join(__dirname, 'routes'));
+
+var layoutDirectories = _.times(MODULES.length, function (num){
     return path.join(__dirname, 'routes', MODULES[num], 'views');
-}));
-app.engine('handlebars', exphbs({defaultLayout: 'main'}));
-app.set('view engine', 'hbs');
+});
+
+var partialDirectories = _.times(MODULES.length, function (num){
+    return {
+        dir:path.join(__dirname, 'routes', MODULES[num], 'partials'),
+        namespace:MODULES[num]
+    };
+});
+
+console.log(typeof partialDirectories, Array.isArray(partialDirectories));
+
+console.log(layoutDirectories, partialDirectories);
+
+var hb = exphbs.create({partialsDir:partialDirectories});
+
+
+hb.getPartials().then(function(partials){
+    console.log(partials);
+});
+
+app.engine('handlebars', hb.engine);
+app.set('view engine', 'handlebars');
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));

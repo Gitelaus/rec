@@ -1,0 +1,11 @@
+{{ title }}
+<ul>
+{{#each out}}
+    <li>
+        {{ this.id }} -
+        <a href="file/{{ this.filename }}">{{ this.filename }}</a>
+    </li>
+{{/each}}
+</ul>
+
+{{> (bodyPartial) }}

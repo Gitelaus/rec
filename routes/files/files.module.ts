@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var path = require('path');
+var waveform = require('waveform-node');
 
 
 var fileModel = new require('./files.model.ts');
@@ -15,22 +16,35 @@ router.export = {
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    res.render('files', { title: 'Express' });
+    fileModel.getFiles().then((files) => {
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.send(JSON.stringify({
+            data:files
+        }));
+    });
 });
 
 router.get('/file/:fileId', function(req, res, next){
-    var collectiveVars;
-    fileModel.getFile(req.params.fileId).then(function(file_content){
-        collectiveVars = {};
-        fileModel.getFileData(req.params.fileId).then(function(file_data){
-            fileModel.getFiles().then(function(files){
-                file_data[0].time_diff = (file_data[0].end_time.getTime() - file_data[0].start_time.getTime()) / 1000
-                res.render('files', {
-                    title:'File',
-                    file: file_data[0],
-                    out:files
-                });
-            });
+    fileModel.getFileData(req.params.fileId).then(function(file_data){
+        res.setHeader('Content-Type', 'application/json');
+        res.send(JSON.stringify({
+            data:file_data
+        }));
+    });
+});
+
+router.get('/file/:fileId/wave', function(req, res, next){
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    fileModel.getFileData(req.params.fileId).then(function(file_data){
+        res.setHeader('Content-Type', 'application/json');
+        waveform.getWaveForm('./public/clips/' + req.params.fileId, {}, function(error, peaks){
+            if(error){
+                return;
+            }
+
+            // Get peaks
+            res.send(peaks);
         });
     });
 });
